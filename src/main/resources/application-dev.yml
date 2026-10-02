@@ -1,0 +1,8 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://admin:admin123@localhost:27017/shopnest?authSource=admin
+      auto-index-creation: true
+logging:
+  level:
+    com.shopnest: DEBUG
