@@ -1,9 +1,12 @@
 package com.shopnest.shopnest_api.product.service;
 
+import com.shopnest.shopnest_api.common.dto.PageResponse;
 import com.shopnest.shopnest_api.common.exception.DuplicateResourceException;
+import com.shopnest.shopnest_api.common.exception.InvalidRequestException;
 import com.shopnest.shopnest_api.common.exception.ResourceNotFoundException;
 import com.shopnest.shopnest_api.common.util.SlugUtil;
 import com.shopnest.shopnest_api.product.dto.CreateProductRequest;
+import com.shopnest.shopnest_api.product.dto.ProductFilter;
 import com.shopnest.shopnest_api.product.dto.ProductResponse;
 import com.shopnest.shopnest_api.product.dto.UpdateProductRequest;
 import com.shopnest.shopnest_api.product.mapper.ProductMapper;
@@ -11,10 +14,13 @@ import com.shopnest.shopnest_api.product.model.Product;
 import com.shopnest.shopnest_api.product.model.ProductStatus;
 import com.shopnest.shopnest_api.product.repository.ProductRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.lang.module.ResolutionException;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -22,6 +28,7 @@ public class ProductService {
     private static final String RESOURCE = "Product";
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private static final Set<String> SORTABLE_FIELDS = Set.of("name", "price", "createdAt", "stock");
 
     public ProductService(ProductRepository productRepository,
                           ProductMapper productMapper) {
@@ -58,8 +65,8 @@ public class ProductService {
 
     }
 
-    public List<ProductResponse> getAll() {
-        return productMapper.toResponseList(productRepository.findAll());
+    public List<ProductResponse> getAll(Pageable pageable) {
+        return productMapper.toResponseList(productRepository.findAll(pageable).getContent());
     }
 
     public ProductResponse update(String id, UpdateProductRequest request) {
@@ -80,5 +87,30 @@ public class ProductService {
 
     private Product findEntityById(String id) {
         return productRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(RESOURCE, "id", id));
+    }
+
+    public PageResponse<ProductResponse> search(ProductFilter productFilter, Pageable pageable) {
+        validateSort(pageable);
+        validatePriceRange(productFilter);
+
+        Page<Product> page = this.productRepository.search(productFilter, pageable);
+        log.debug("Product search returned {} of {} items", page.getNumberOfElements());
+        return PageResponse.from(page, productMapper::toResponse);
+    }
+
+    private void validateSort(Pageable pageable) {
+        pageable.getSort().forEach(order -> {
+            if (!SORTABLE_FIELDS.contains(order.getProperty())) {
+                throw new InvalidRequestException(
+                        "Cannot sort by '%s'. Allowed: %s".formatted(order.getProperty(), SORTABLE_FIELDS));
+            }
+        });
+    }
+
+    private void validatePriceRange(ProductFilter filter) {
+        if (filter.minPrice() != null && filter.maxPrice() != null && filter.minPrice().compareTo(filter.maxPrice()) > 0)
+            throw new InvalidRequestException("minPrice cannot be greate than maxPrice");
+
+
     }
 }

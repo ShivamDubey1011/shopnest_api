@@ -12,7 +12,7 @@ import java.util.Optional;
  * Spring Data generates the implementation at startup. Method names are parsed
  * into Mongo queries ("derived queries"), e.g. findBySlug → { slug: ? }.
  */
-public interface ProductRepository extends MongoRepository<Product, String> {
+public interface ProductRepository extends MongoRepository<Product, String>, ProductRepositoryCustom {
 
     /**
      * Finds a product by its URL-friendly slug.

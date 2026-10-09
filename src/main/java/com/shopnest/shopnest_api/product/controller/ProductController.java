@@ -1,10 +1,17 @@
 package com.shopnest.shopnest_api.product.controller;
 
+import com.shopnest.shopnest_api.common.dto.PageResponse;
 import com.shopnest.shopnest_api.product.dto.CreateProductRequest;
+import com.shopnest.shopnest_api.product.dto.ProductFilter;
 import com.shopnest.shopnest_api.product.dto.ProductResponse;
 import com.shopnest.shopnest_api.product.dto.UpdateProductRequest;
 import com.shopnest.shopnest_api.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -44,9 +51,9 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProductResponse>> getAllProduct() {
-        List<ProductResponse> productResponseList = productService.getAll();
-        return ResponseEntity.ok(productResponseList);
+    public ResponseEntity<PageResponse<ProductResponse>> getAllProduct(@ModelAttribute ProductFilter productFilter, @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        PageResponse<ProductResponse> productResponses = productService.search(productFilter, pageable);
+        return ResponseEntity.ok(productResponses);
     }
 
     @PatchMapping("/{id}")
