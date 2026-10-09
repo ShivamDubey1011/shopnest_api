@@ -31,8 +31,10 @@ public class ProductService {
 
     public ProductResponse create(CreateProductRequest request) {
         String slug = SlugUtil.toSlug(request.name());
+        log.debug("Creating product name={} generatedSlug={}", request.name(), slug);
 
         if (productRepository.existsBySlug(slug)) {
+            log.warn("Duplicate product rejected slug={}", slug);
             throw new DuplicateResourceException(RESOURCE, "slug", slug);
         }
         Product product = productMapper.toEntity(request);
@@ -62,6 +64,7 @@ public class ProductService {
 
     public ProductResponse update(String id, UpdateProductRequest request) {
         Product product = findEntityById(id);
+        log.debug("Updating product id={} currentVersion={}", id, product.getVersion());
         productMapper.updateEntity(request, product);
 
         Product save = productRepository.save(product);

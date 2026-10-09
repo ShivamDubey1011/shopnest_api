@@ -1,0 +1,11 @@
+spring:
+  mongodb:
+    uri: ${MONGO_URI}
+
+logging:
+  level:
+    root: INFO
+    com.shopnest: INFO
+  structured:
+    format:
+      console: ecs
