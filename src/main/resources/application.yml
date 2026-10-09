@@ -15,3 +15,10 @@ logging:
   pattern:
     correlation: "[%X{correlationId:-}] "
 
+shopnest:
+  catalog:
+    allowed-categories:
+      - electronics
+      - books
+      - fashion
+

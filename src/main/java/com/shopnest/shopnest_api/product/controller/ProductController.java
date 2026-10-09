@@ -1,11 +1,13 @@
 package com.shopnest.shopnest_api.product.controller;
 
 import com.shopnest.shopnest_api.common.dto.PageResponse;
+import com.shopnest.shopnest_api.common.validation.ValidObjectId;
 import com.shopnest.shopnest_api.product.dto.CreateProductRequest;
 import com.shopnest.shopnest_api.product.dto.ProductFilter;
 import com.shopnest.shopnest_api.product.dto.ProductResponse;
 import com.shopnest.shopnest_api.product.dto.UpdateProductRequest;
 import com.shopnest.shopnest_api.product.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,7 +30,7 @@ public class ProductController {
 
 
     @PostMapping
-    public ResponseEntity<ProductResponse> create(@RequestBody CreateProductRequest productRequest) {
+    public ResponseEntity<ProductResponse> create(@Valid @RequestBody CreateProductRequest productRequest) {
         ProductResponse created = productService.create(productRequest);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
@@ -51,19 +53,19 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<PageResponse<ProductResponse>> getAllProduct(@ModelAttribute ProductFilter productFilter, @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+    public ResponseEntity<PageResponse<ProductResponse>> search(@Valid @ModelAttribute ProductFilter productFilter, @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         PageResponse<ProductResponse> productResponses = productService.search(productFilter, pageable);
         return ResponseEntity.ok(productResponses);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<ProductResponse> updateProduct(@PathVariable String id, @RequestBody UpdateProductRequest updateProductRequest) {
+    public ResponseEntity<ProductResponse> updateProduct(@PathVariable @ValidObjectId String id, @Valid @RequestBody UpdateProductRequest updateProductRequest) {
         ProductResponse productResponse = productService.update(id, updateProductRequest);
         return ResponseEntity.ok(productResponse);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteById(@PathVariable String id) {
+    public ResponseEntity<Void> deleteById(@PathVariable @ValidObjectId String id) {
         productService.delete(id);
         return ResponseEntity.noContent().build();
     }
